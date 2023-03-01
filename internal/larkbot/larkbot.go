@@ -3,6 +3,7 @@ package larkbot
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/larksuite/oapi-sdk-gin"
 	"github.com/larksuite/oapi-sdk-go/v3"
@@ -15,6 +16,8 @@ type Config struct {
 	AppSecret         string
 	VerificationToken string
 	EventEncryptKey   string
+	BaseUrl           string
+	Port              int
 }
 
 type MessageType string
@@ -39,7 +42,7 @@ type Bot struct {
 func New(c Config) *Bot {
 	return &Bot{
 		conf: c,
-		cli:  lark.NewClient(c.AppID, c.AppSecret),
+		cli:  lark.NewClient(c.AppID, c.AppSecret, lark.WithOpenBaseUrl(c.BaseUrl)),
 	}
 }
 
@@ -63,7 +66,7 @@ func (b *Bot) Run(handlerFunc func(msg Message)) error {
 		})
 
 	r.POST("/webhook/event", sdkginext.NewEventHandlerFunc(handler))
-	return r.Run()
+	return r.Run(fmt.Sprintf("0.0.0.0:%d", b.conf.Port))
 }
 
 type msgContent struct {

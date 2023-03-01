@@ -11,6 +11,7 @@ type Config struct {
 	VerificationToken string `yaml:"verification_token"`
 	EventEncryptKey   string `yaml:"event_encrypt_key"`
 	OpenAIKey         string `yaml:"open_ai_key"`
+	BotName           string `yaml:"bot_name"`
 	LarkBaseUrl       string `yaml:"lark_base_url"`
 	Port              int    `yaml:"port"`
 }
@@ -20,6 +21,7 @@ app_secret:
 verification_token: 
 event_encrypt_key: 
 open_ai_key: 
+bot_name: bot
 lark_base_url: https://open.larksuite.com # for feishu, use https://open.feishu.cn
 port: 3000
 `)

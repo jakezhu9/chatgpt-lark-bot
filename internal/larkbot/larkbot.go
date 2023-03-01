@@ -16,6 +16,7 @@ type Config struct {
 	AppSecret         string
 	VerificationToken string
 	EventEncryptKey   string
+	Name              string
 	BaseUrl           string
 	Port              int
 }
@@ -28,10 +29,11 @@ const (
 )
 
 type Message struct {
-	ID       string
-	Type     MessageType
-	SenderID string
-	Content  string
+	ID        string
+	Type      MessageType
+	MentionMe bool
+	SenderID  string
+	Content   string
 }
 
 type Bot struct {
@@ -52,13 +54,18 @@ func (b *Bot) Run(handlerFunc func(msg Message)) error {
 		OnP2MessageReceiveV1(func(ctx context.Context, e *larkim.P2MessageReceiveV1) error {
 			go func() {
 				msg := Message{
-					ID:       *e.Event.Message.MessageId,
-					Type:     PrivateChat,
-					SenderID: *e.Event.Sender.SenderId.OpenId,
-					Content:  *e.Event.Message.Content,
+					ID:        *e.Event.Message.MessageId,
+					Type:      PrivateChat,
+					MentionMe: true,
+					SenderID:  *e.Event.Sender.SenderId.OpenId,
+					Content:   *e.Event.Message.Content,
 				}
 				if *e.Event.Message.ChatType != "p2p" {
 					msg.Type = GroupChat
+					msg.MentionMe = false
+					if len(e.Event.Message.Mentions) == 1 {
+						msg.MentionMe = *e.Event.Message.Mentions[0].Name == b.conf.Name
+					}
 				}
 				handlerFunc(msg)
 			}()

@@ -28,7 +28,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to read configuration file: %s", err)
 	}
-	log.Println(conf.EventEncryptKey)
 
 	g := gpt.New(conf.OpenAIKey)
 	bot := larkbot.New(larkbot.Config{
@@ -36,12 +35,19 @@ func main() {
 		AppSecret:         conf.AppSecret,
 		VerificationToken: conf.VerificationToken,
 		EventEncryptKey:   conf.EventEncryptKey,
+		Name:              conf.BotName,
+		BaseUrl:           conf.LarkBaseUrl,
+		Port:              conf.Port,
 	})
 	handler := func(msg larkbot.Message) {
 		if msg.Content == "" {
 			return
 		}
 		log.Printf("receive message: %s %s\n", msg.ID, msg.Content)
+		if msg.Type == larkbot.GroupChat && !msg.MentionMe {
+			return
+		}
+
 		res, err := g.Handle(fmt.Sprintf("Q:%s\nA:", msg.Content))
 		if err != nil {
 			log.Printf("gpt error: %s\n", err)

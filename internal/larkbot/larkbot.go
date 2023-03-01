@@ -9,6 +9,7 @@ import (
 	"github.com/larksuite/oapi-sdk-go/v3"
 	"github.com/larksuite/oapi-sdk-go/v3/event/dispatcher"
 	"github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
+	"log"
 )
 
 type Config struct {
@@ -36,6 +37,10 @@ type Message struct {
 	Content   string
 }
 
+type msgContent struct {
+	Text string `json:"text"`
+}
+
 type Bot struct {
 	conf Config
 	cli  *lark.Client
@@ -52,21 +57,31 @@ func (b *Bot) Run(handlerFunc func(msg Message)) error {
 	r := gin.Default()
 	handler := dispatcher.NewEventDispatcher(b.conf.VerificationToken, b.conf.EventEncryptKey).
 		OnP2MessageReceiveV1(func(ctx context.Context, e *larkim.P2MessageReceiveV1) error {
+			if *e.Event.Message.MessageType != "text" {
+				return nil
+			}
+			msg := Message{
+				ID:        *e.Event.Message.MessageId,
+				Type:      PrivateChat,
+				MentionMe: true,
+				SenderID:  *e.Event.Sender.SenderId.OpenId,
+			}
+			if *e.Event.Message.ChatType != "p2p" {
+				msg.Type = GroupChat
+				msg.MentionMe = false
+				if len(e.Event.Message.Mentions) == 1 {
+					msg.MentionMe = *e.Event.Message.Mentions[0].Name == b.conf.Name
+				}
+			}
+			content := msgContent{}
+			err := json.Unmarshal([]byte(*e.Event.Message.Content), &content)
+			if err != nil {
+				log.Println(err)
+				return nil
+			}
+			msg.Content = content.Text
+
 			go func() {
-				msg := Message{
-					ID:        *e.Event.Message.MessageId,
-					Type:      PrivateChat,
-					MentionMe: true,
-					SenderID:  *e.Event.Sender.SenderId.OpenId,
-					Content:   *e.Event.Message.Content,
-				}
-				if *e.Event.Message.ChatType != "p2p" {
-					msg.Type = GroupChat
-					msg.MentionMe = false
-					if len(e.Event.Message.Mentions) == 1 {
-						msg.MentionMe = *e.Event.Message.Mentions[0].Name == b.conf.Name
-					}
-				}
 				handlerFunc(msg)
 			}()
 			return nil
@@ -74,10 +89,6 @@ func (b *Bot) Run(handlerFunc func(msg Message)) error {
 
 	r.POST("/webhook/event", sdkginext.NewEventHandlerFunc(handler))
 	return r.Run(fmt.Sprintf("0.0.0.0:%d", b.conf.Port))
-}
-
-type msgContent struct {
-	Text string `json:"text"`
 }
 
 func (b *Bot) Reply(messageID, content string) error {

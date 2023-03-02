@@ -2,7 +2,7 @@
 
 Your personal AI assistant in lark/feishu
 
-
+![1](assets/1.jpeg)
 
 ## How to use
 

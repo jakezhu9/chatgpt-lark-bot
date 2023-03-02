@@ -14,10 +14,9 @@ type GPT struct {
 }
 
 const (
-	model     = "text-davinci-003"
-	maxTokens = 2000
-	apiUrl    = "https://api.openai.com/v1/completions"
-	timeOut   = 60
+	model   = "gpt-3.5-turbo"
+	apiUrl  = "https://api.openai.com/v1/chat/completions"
+	timeOut = 60
 )
 
 func New(apiKey string) GPT {
@@ -25,23 +24,31 @@ func New(apiKey string) GPT {
 }
 
 type gptReq struct {
-	Model     string `json:"model"`
-	Prompt    string `json:"prompt"`
-	MaxTokens int    `json:"max_tokens"`
+	Model    string   `json:"model"`
+	Messages []gptMsg `json:"messages"`
+}
+
+type gptMsg struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
 }
 
 type gptResp struct {
-	ID      string `json:"id"`
-	Choices []struct {
-		Text string `json:"text"`
-	} `json:"choices"`
+	ID      string       `json:"id"`
+	Choices []gptChoices `json:"choices"`
+}
+
+type gptChoices struct {
+	Message gptMsg `json:"message"`
 }
 
 func (g *GPT) Handle(message string) (string, error) {
 	reqBody := gptReq{
-		Model:     model,
-		Prompt:    message,
-		MaxTokens: maxTokens,
+		Model: model,
+		Messages: []gptMsg{{
+			Role:    "user",
+			Content: message,
+		}},
 	}
 	reqData, err := json.Marshal(reqBody)
 	if err != nil {
@@ -69,7 +76,7 @@ func (g *GPT) Handle(message string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("gpt3 api error: %d %s", resp.StatusCode, respBody)
+		return "", fmt.Errorf("gpt api error: %d %s", resp.StatusCode, respBody)
 	}
 
 	respData := &gptResp{}
@@ -79,7 +86,7 @@ func (g *GPT) Handle(message string) (string, error) {
 	}
 
 	if len(respData.Choices) > 0 {
-		return respData.Choices[0].Text, nil
+		return respData.Choices[0].Message.Content, nil
 	}
-	return "", fmt.Errorf("gpt3 resp no data: %s", respBody)
+	return "", fmt.Errorf("gpt resp no data: %s", respBody)
 }

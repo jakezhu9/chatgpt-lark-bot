@@ -5,40 +5,23 @@ import (
 	"github.com/jakezhu9/chatgpt-lark-bot/internal/config"
 	"github.com/jakezhu9/chatgpt-lark-bot/internal/gpt"
 	"github.com/jakezhu9/chatgpt-lark-bot/internal/larkbot"
-	"github.com/jakezhu9/chatgpt-lark-bot/internal/util"
 	"log"
 )
 
 func main() {
-	configFile := "./config.yaml"
-	exist, err := util.FileExists(configFile)
-	if err != nil {
-		log.Fatalf("failed to read configuration file: %s", err)
-	}
-	if !exist {
-		err = config.WriteDefaultConfig(configFile)
-		if err != nil {
-			log.Fatalf("failed to create configuration file: %s", err)
-		}
-		log.Println("create default config to " + configFile)
-		return
-	}
+	v := config.LoadConfig()
 
-	conf, err := config.LoadConfig(configFile)
-	if err != nil {
-		log.Fatalf("failed to read configuration file: %s", err)
-	}
-
-	g := gpt.New(conf.OpenAIKey)
+	g := gpt.New(v.GetString("open_ai_key"))
 	bot := larkbot.New(larkbot.Config{
-		AppID:             conf.AppID,
-		AppSecret:         conf.AppSecret,
-		VerificationToken: conf.VerificationToken,
-		EventEncryptKey:   conf.EventEncryptKey,
-		Name:              conf.BotName,
-		BaseUrl:           conf.LarkBaseUrl,
-		Port:              conf.Port,
+		AppID:             v.GetString("app_id"),
+		AppSecret:         v.GetString("app_secret"),
+		VerificationToken: v.GetString("verification_token"),
+		EventEncryptKey:   v.GetString("event_encrypt_key"),
+		Name:              v.GetString("bot_name"),
+		BaseUrl:           v.GetString("lark_base_url"),
+		Port:              v.GetInt("port"),
 	})
+
 	handler := func(msg larkbot.Message) {
 		if msg.Content == "" {
 			return

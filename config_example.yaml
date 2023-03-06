@@ -1,0 +1,8 @@
+app_id:
+app_secret:
+verification_token:
+event_encrypt_key:
+open_ai_key:
+bot_name: bot
+lark_base_url: https://open.larksuite.com # for feishu, use https://open.feishu.cn
+port: 3000

@@ -23,7 +23,7 @@ jobs:
       - uses: wangyoucao577/go-release-action@v1
         with:
           md5sum: false
-          extra_files: README.md LICENSE
+          extra_files: README.md LICENSE config_example.yaml
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

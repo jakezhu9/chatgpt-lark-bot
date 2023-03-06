@@ -7,7 +7,7 @@ Your personal AI assistant in lark/feishu
 ## How to use
 
 1. Download the file corresponding to your OS in the [releases page](https://github.com/jakezhu9/chatgpt-lark-bot/releases).
-2. After you download the file, extract it into a folder and run it to create default configuration file.
+2. After you download the file, extract it into a folder and rename `config_example.yaml` to `config.yaml`.
 3. Create your bot app in [Lark Open Platform](https://open.larksuite.com/app). Get the`app_id`, `app_secret` in the **Credentials & Basic Info** page, `verification_token` and `event_encrypt_key` in the **Event Subscriptions** page.
 4. Edit `config.yaml` and fill in your credentials:
     - `open_ai_key`: [Click here](https://platform.openai.com/account/api-keys) to get your OpenAI key.

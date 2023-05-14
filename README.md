@@ -1,3 +1,7 @@
+# ❌ This repository is archived. 
+
+If you still want to use it, you can refer to the code in this repository, or find other similar projects on github
+
 # ChatGPT Lark Bot
 
 Your personal AI assistant in lark/feishu
